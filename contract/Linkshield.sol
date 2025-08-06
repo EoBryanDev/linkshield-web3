@@ -13,6 +13,12 @@ contract LinkShield {
     mapping(string => Link) private links;
     mapping(string => mapping(address => bool)) public hasAccess;
 
+    address public immutable admin;
+
+    constructor(){
+        admin = msg.sender;
+    }
+
     function addLink(string calldata url, string calldata linkId, uint256 fee) public {
         Link memory link = links[linkId];
         require(link.owner == address(0) || link.owner == msg.sender, "This linkId already has an owner");
@@ -45,5 +51,11 @@ contract LinkShield {
         hasAccess[linkId][msg.sender] = true;
 
         payable(link.owner).transfer(msg.value - tax);
+    }
+
+    function withdraw() public {
+        require(msg.sender == admin, "You do not have permission!");
+        uint256 amount = address(this).balance;
+        payable(admin).transfer(amount);
     }
 }
